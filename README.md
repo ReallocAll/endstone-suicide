@@ -10,7 +10,7 @@ A minimal `/suicide` command for Endstone servers. The command immediately sets 
 
 ## Installation
 
-Download or build `endstone_suicide-0.1.0-py3-none-any.whl`, copy it to the server's `plugins/` directory, and restart the server. This plugin targets the Endstone 0.11 API and declares Python 3.10 or newer, as in the original 0.1.0 release.
+Download or build `endstone_suicide-0.1.0-py3-none-any.whl`, copy it to the server's `plugins/` directory, and restart the server. This plugin targets the Endstone 0.11 API. Python 3.11–3.15 is covered by CI; running the server also requires an Endstone build compatible with your Python version.
 
 ## Commands and permissions
 

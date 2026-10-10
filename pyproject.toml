@@ -9,7 +9,7 @@ description = "A minimal /suicide command plugin for Endstone."
 readme = "README.md"
 license = "GPL-3.0-only"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "ReallocAll" }]
 keywords = ["endstone", "minecraft", "bedrock", "plugin"]
 classifiers = [
@@ -33,7 +33,7 @@ packages = ["src/endstone_suicide"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
