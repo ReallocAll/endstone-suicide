@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv python install ${{ matrix.python-version }}
+      - run: uv sync --extra dev --python ${{ matrix.python-version }}
+      - run: uv run --no-sync ruff check .
+      - run: uv run --no-sync pytest -q
+
+  build:
+    name: Build and install wheel
+    runs-on: ubuntu-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.13
+      - run: uv build
+      - run: uv venv .venv-wheel --python 3.13
+      - run: uv pip install --python .venv-wheel/bin/python --no-deps dist/*.whl
+      - name: Validate wheel contents and installed entry point
+        run: |
+          .venv-wheel/bin/python - <<'PY'
+          from importlib.metadata import distribution
+          from pathlib import Path
+          import sys
+          import types
+          from zipfile import ZipFile
+
+          dist = distribution("endstone-suicide")
+          assert dist.version == "0.1.0"
+          entry = next(ep for ep in dist.entry_points if ep.group == "endstone" and ep.name == "suicide")
+          assert entry.value == "endstone_suicide:SuicidePlugin"
+          assert any(str(p).endswith("LICENSE") for p in dist.files)
+
+          class Player:
+              pass
+
+          class CommandSender:
+              pass
+
+          class Command:
+              pass
+
+          class Plugin:
+              pass
+
+          endstone = types.ModuleType("endstone")
+          endstone.Player = Player
+          command = types.ModuleType("endstone.command")
+          command.Command = Command
+          command.CommandSender = CommandSender
+          plugin = types.ModuleType("endstone.plugin")
+          plugin.Plugin = Plugin
+          sys.modules.update({"endstone": endstone, "endstone.command": command, "endstone.plugin": plugin})
+          assert issubclass(entry.load(), Plugin)
+
+          wheels = list(Path("dist").glob("*.whl"))
+          assert len(wheels) == 1
+          with ZipFile(wheels[0]) as archive:
+              names = archive.namelist()
+              assert "endstone_suicide/plugin.py" in names
+              assert "endstone_suicide/__init__.py" in names
+              assert not any(name.startswith(("tests/", ".github/")) for name in names)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: endstone-suicide-distributions
+          path: dist/*
+          if-no-files-found: error
