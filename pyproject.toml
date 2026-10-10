@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "endstone-suicide"
+version = "0.1.0"
+description = "A minimal /suicide command plugin for Endstone."
+readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "ReallocAll" }]
+keywords = ["endstone", "minecraft", "bedrock", "plugin"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<10",
+    "ruff>=0.13,<1",
+]
+
+[project.urls]
+Repository = "https://github.com/ReallocAll/endstone-suicide"
+
+[project.entry-points."endstone"]
+suicide = "endstone_suicide:SuicidePlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/endstone_suicide"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
